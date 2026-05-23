@@ -1,6 +1,8 @@
 ################## Regressão Polinomial ################## 
 
 from sklearn.preprocessing import PolynomialFeatures
+from sklearn import metrics
+
 poly = PolynomialFeatures(degree = 3)
 previsores_treinamento_poly = poly.fit_transform(previsores_treinamento)
 previsores_teste_poly = poly.transform(previsores_teste)
