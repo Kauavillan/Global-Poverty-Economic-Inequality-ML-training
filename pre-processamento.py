@@ -1,12 +1,10 @@
 ################## # Pré-processamento dos dados ##################
 
 import pandas as pd
+import numpy as np
 
-from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 
 # =============================================================================
@@ -43,35 +41,6 @@ objetivo = base[cols_objetivo]
 
 
 # =============================================================================
-# Transformar variáveis categóricas em valores numéricos
-# =============================================================================
-
-colunas_categoricas = ['country', 'region', 'income_group']
-colunas_numericas = [col for col in cols_previsores if col not in colunas_categoricas]
-
-preprocessador = ColumnTransformer(
-	transformers=[
-		(
-			'numericas',
-			Pipeline(steps=[
-				('imputer', SimpleImputer(strategy='median')),
-				('scaler', StandardScaler()),
-			]),
-			colunas_numericas,
-		),
-		(
-			'categoricas',
-			Pipeline(steps=[
-				('imputer', SimpleImputer(strategy='most_frequent')),
-				('onehot', OneHotEncoder(handle_unknown='ignore')),
-			]),
-			colunas_categoricas,
-		),
-	]
-)
-
-
-# =============================================================================
 # Separando em base de testes e treinamento
 # =============================================================================
 
@@ -85,8 +54,60 @@ previsores_treinamento, previsores_teste, objetivo_treinamento, objetivo_teste =
 
 
 # =============================================================================
-# Pré-processamento dos dados
+#      Transformar as variáveis categóricas (ordinais) em valores numéricos
 # =============================================================================
 
-previsores_treinamento = preprocessador.fit_transform(previsores_treinamento)
-previsores_teste = preprocessador.transform(previsores_teste)
+coluna_ordinal = 'income_group'
+
+# Ordem ordinal: Low < Lower-Middle < Upper-Middle < High.
+labelencoder_income_group = LabelEncoder()
+labelencoder_income_group.classes_ = np.array([
+	'Low Income',
+	'Lower-Middle Income',
+	'Upper-Middle Income',
+	'High Income',
+])
+
+previsores_treinamento.loc[:, coluna_ordinal] = labelencoder_income_group.transform(
+	previsores_treinamento.loc[:, coluna_ordinal]
+).astype('int64')
+previsores_teste.loc[:, coluna_ordinal] = labelencoder_income_group.transform(
+	previsores_teste.loc[:, coluna_ordinal]
+).astype('int64')
+
+
+# =============================================================================
+#      Transformar as variáveis categóricas (nominais) em variáveis dummy
+# =============================================================================
+
+colunas_nominais = ['country', 'region']
+
+previsores_treinamento = pd.get_dummies(
+	previsores_treinamento,
+	columns=colunas_nominais,
+	dtype='int64',
+)
+previsores_teste = pd.get_dummies(
+	previsores_teste,
+	columns=colunas_nominais,
+	dtype='int64',
+)
+
+# Garante as mesmas colunas entre treino e teste apos o one-hot encoding.
+previsores_teste = previsores_teste.reindex(columns=previsores_treinamento.columns, fill_value=0)
+
+cols_previsores = previsores_treinamento.columns
+
+
+# =============================================================================
+#                     Padronização dos dados
+# =============================================================================
+
+scaler = StandardScaler()
+previsores_treinamento = scaler.fit_transform(previsores_treinamento)
+previsores_teste = scaler.transform(previsores_teste)
+
+
+scaler_objetivo = StandardScaler()
+objetivo_treinamento = scaler_objetivo.fit_transform(objetivo_treinamento)
+objetivo_teste = scaler_objetivo.transform(objetivo_teste)
