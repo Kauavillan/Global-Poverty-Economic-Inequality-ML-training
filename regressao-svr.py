@@ -8,147 +8,128 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from sklearn.svm import SVR
-from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import KFold, GridSearchCV, cross_validate
-from sklearn.pipeline import Pipeline
-from sklearn.compose import TransformedTargetRegressor
 from sklearn.inspection import permutation_importance
+from sklearn import metrics
 import warnings
+import os
 
-# Suprimir avisos para manter o console limpo durante as múltiplas execuções
 warnings.filterwarnings('ignore')
 
+# Toggle para testar múltiplas possibilidades (GridSearch, Seleção de Variáveis) ou apenas rodar a melhor configuração do modelo.
+TESTAR_POSSIBILIDADES = False
+
 # =============================================================================
-# 1. Funções de Auxílio (Encapsulamento de Padrões)
+# 1. Importação do Pré-Processamento do Professor
 # =============================================================================
+# print("Executando pre-processamento.py...")
+# os.makedirs('resultados', exist_ok=True)
 
-def carregar_e_preparar_dados(caminho_arquivo):
-    print(f"Lendo e processando a base de dados ({caminho_arquivo})...")
-    base = pd.read_csv(caminho_arquivo)
-    base = base.drop(columns=['record_id'], errors='ignore')
+# with open('pre-processamento.py', 'r', encoding='utf-8') as f:
+#     exec(f.read())
 
-    col_alvo = 'female_labor_participation_pct'
-    X = base.drop(columns=[col_alvo]).copy()
-    y = base[col_alvo].copy()
+# # O StandardScaler do professor retorna matrizes 2D para o objetivo.
+# # O SVR exige um vetor 1D, então aplicamos .ravel()
+# y_treino = objetivo_treinamento.ravel()
+# y_teste = objetivo_teste.ravel()
 
-    # Codificação de Variáveis
-    le_income = LabelEncoder()
-    le_income.classes_ = np.array(['Low Income', 'Lower-Middle Income', 'Upper-Middle Income', 'High Income'])
-    X['income_group'] = le_income.transform(X['income_group']).astype('int64')
-    X = pd.get_dummies(X, columns=['country', 'region'], dtype='int64')
-    
-    return X, y
-
-def verificar_correlacoes(X, limite=0.8):
-    print("\nVerificando possíveis problemas no pré-processamento (Variáveis Altamente Correlacionadas)...")
-    numeric_X = X.select_dtypes(include=[np.number])
-    matriz_corr = numeric_X.corr().abs()
-    
-    # Retira a diagonal principal para não contar a correlação da variável com ela mesma
-    matriz_superior = matriz_corr.where(np.triu(np.ones(matriz_corr.shape), k=1).astype(bool))
-    cols_para_remover = [coluna for coluna in matriz_superior.columns if any(matriz_superior[coluna] > limite)]
-    
-    if cols_para_remover:
-        print(f"[!] CUIDADO: Variáveis encontradas com correlação de Pearson > {limite}: {cols_para_remover}")
-        print("    -> Podem gerar distorções (multicolinearidade).")
-    else:
-        print(f"[i] Nenhum par de variáveis excede o limite de {limite}.")
-        
-    return cols_para_remover
-
-def executar_teste(X, y, nome_teste):
-    """
-    Agrupa a rotina inteira: pipeline, tuning, validação, relatório e plotagem de gráfico.
-    """
+# =============================================================================
+# 2. Funções de Teste de Regressão
+# =============================================================================
+def executar_teste(X_train, y_train, X_test, y_test, nomes_colunas, nome_teste, testar_possibilidades=True):
     print(f"\n\n{'='*80}")
     print(f"=== TESTE: {nome_teste} ===")
     print(f"{'='*80}\n")
 
-    # Pipeline Robusto de Escalonamento e Modelo
-    pipeline = Pipeline(steps=[
-        ('scaler', StandardScaler()),
-        ('svr', SVR())
-    ])
-    modelo_final = TransformedTargetRegressor(regressor=pipeline, transformer=StandardScaler())
     cv_strategy = KFold(n_splits=5, shuffle=True, random_state=42)
 
-    # Configurações do modelo
-    param_grid = {
-        'regressor__svr__kernel': ['rbf', 'linear'],
-        'regressor__svr__C': [0.1, 1.0, 10.0],
-        'regressor__svr__gamma': ['scale'],
-        'regressor__svr__epsilon': [0.01, 0.1, 1.0]
-    }
-
-    print(f"[{nome_teste}] 1. Treinando e otimizando parâmetros (GridSearch)...")
-    grid_search = GridSearchCV(estimator=modelo_final, param_grid=param_grid, scoring='neg_mean_squared_error', cv=cv_strategy, n_jobs=-1)
-    grid_search.fit(X, y)
-    melhor_modelo = grid_search.best_estimator_
-    
-    print(f"[{nome_teste}] Melhor configuração: {grid_search.best_params_}")
+    if testar_possibilidades:
+        param_grid = {
+            'kernel': ['rbf', 'linear'],
+            'C': [0.1, 1.0, 10.0],
+            'gamma': ['scale'],
+            'epsilon': [0.01, 0.1, 1.0]
+        }
+        print(f"[{nome_teste}] 1. Treinando e otimizando parâmetros em 75% da base...")
+        grid_search = GridSearchCV(estimator=SVR(), param_grid=param_grid, scoring='neg_mean_squared_error', cv=cv_strategy, n_jobs=-1)
+        grid_search.fit(X_train, y_train)
+        melhor_modelo = grid_search.best_estimator_
+        print(f"[{nome_teste}] Melhor configuração: {grid_search.best_params_}")
+    else:
+        print(f"[{nome_teste}] 1. Treinando modelo com a melhor configuração predefinida...")
+        melhor_modelo = SVR(kernel='rbf', C=1.0, epsilon=0.1, gamma='scale')
 
     print(f"[{nome_teste}] 2. Rodando Validação Cruzada KFold...")
-    scores = cross_validate(melhor_modelo, X, y, cv=cv_strategy, scoring=('r2', 'neg_mean_absolute_error', 'neg_mean_squared_error', 'neg_root_mean_squared_error'))
+    scores = cross_validate(melhor_modelo, X_train, y_train, cv=cv_strategy, scoring=('r2', 'neg_mean_absolute_error', 'neg_mean_squared_error', 'neg_root_mean_squared_error'))
 
-    print(f"\n--- MÉTRICAS FINAIS ({nome_teste}) ---")
-    print(f"R² Score:  {np.mean(scores['test_r2']):.4f} (+/- {np.std(scores['test_r2']):.4f})")
-    print(f"MAE:       {-np.mean(scores['test_neg_mean_absolute_error']):.4f}")
-    print(f"MSE:       {-np.mean(scores['test_neg_mean_squared_error']):.4f}")
-    print(f"RMSE:      {-np.mean(scores['test_neg_root_mean_squared_error']):.4f}")
+    print(f"\n--- MÉTRICAS NA VALIDAÇÃO CRUZADA DE TREINO ({nome_teste}) ---")
+    print(f"Score Médio CV: {np.mean(scores['test_r2']):.4f}")
 
-    print(f"\n[{nome_teste}] 3. Analisando as variáveis mais cruciais para este teste...")
-    resultado_imp = permutation_importance(melhor_modelo, X, y, n_repeats=5, random_state=42, n_jobs=-1)
-    indices = resultado_imp.importances_mean.argsort()[::-1]
+    # 3. Teste final na base de teste (25%) separada no pre-processamento.py
+    melhor_modelo.fit(X_train, y_train)
+    previsoes = melhor_modelo.predict(X_test)
     
-    top_n = min(10, len(X.columns))
-    top_features = X.columns[indices[:top_n]]
-    top_importances = resultado_imp.importances_mean[indices[:top_n]]
+    print(f"\n--- MÉTRICAS FINAIS NA BASE DE TESTE ({nome_teste}) ---")
+    print(f"Score: {melhor_modelo.score(X_test, y_test):.4f}")
+    print(f"Mean Absolute Error: {metrics.mean_absolute_error(y_test, previsoes):.4f}")
+    print(f"Mean Squared Error: {metrics.mean_squared_error(y_test, previsoes):.4f}")
+    print(f"Root Mean Squared Error: {np.sqrt(metrics.mean_squared_error(y_test, previsoes)):.4f}")
 
-    for i in range(len(top_features)):
-        print(f"    {i+1}º - {top_features[i]}: {top_importances[i]:.4f}")
+    top_features = []
+    if testar_possibilidades:
+        print(f"\n[{nome_teste}] 3. Analisando as variáveis mais cruciais (Permutation Importance)...")
+        resultado_imp = permutation_importance(melhor_modelo, X_train, y_train, n_repeats=5, random_state=42, n_jobs=-1)
+        indices = resultado_imp.importances_mean.argsort()[::-1]
+        
+        top_n = min(10, len(nomes_colunas))
+        top_features = np.array(nomes_colunas)[indices[:top_n]]
+        top_importances = resultado_imp.importances_mean[indices[:top_n]]
 
-    # 4. Geração Automática de Gráfico
-    plt.figure(figsize=(10, 6))
-    plt.barh(top_features[::-1], top_importances[::-1], color='royalblue')
-    plt.xlabel("Permutation Importance")
-    plt.title(f"Importância de Features - {nome_teste}")
-    plt.tight_layout()
-    
-    nome_arquivo = f"plot_SVR_{nome_teste.replace(' ', '_').replace(':', '')}.png"
-    plt.savefig(nome_arquivo)
-    print(f"[{nome_teste}] 4. Gráfico gerado com sucesso: '{nome_arquivo}'")
-    plt.close()
+        for i in range(len(top_features)):
+            print(f"    {i+1}º - {top_features[i]}: {top_importances[i]:.4f}")
+
+        # 4. Geração Automática de Gráfico
+        plt.figure(figsize=(10, 6))
+        plt.barh(top_features[::-1], top_importances[::-1], color='royalblue')
+        plt.xlabel("Permutation Importance")
+        plt.title(f"Importância de Features - {nome_teste}")
+        plt.tight_layout()
+        
+        nome_arquivo = f"resultados/plot_SVR_{nome_teste.replace(' ', '_').replace(':', '')}.png"
+        plt.savefig(nome_arquivo)
+        print(f"[{nome_teste}] 4. Gráfico gerado com sucesso: '{nome_arquivo}'")
+        plt.close()
 
     return melhor_modelo, list(top_features)
 
 
 # =============================================================================
-# 2. Execução Sequencial dos Experimentos
+# 3. Execução Sequencial dos Experimentos
 # =============================================================================
 if __name__ == '__main__':
-    # Carga Inicial
-    X_completo, y = carregar_e_preparar_dados('datasets/dataset.csv')
-
-    # Análise Exploratória Rápida no script
-    cols_para_remover = verificar_correlacoes(X_completo, limite=0.8)
-
     # --- TESTE 1 ---
-    # Baseline usando toda a complexidade dos dados (todas as features)
-    _, top_features_t1 = executar_teste(X_completo, y, "Teste 1 - Todas as Variaveis")
+    _, top_features_t1 = executar_teste(
+        previsores_treinamento, y_treino, 
+        previsores_teste, y_teste, 
+        cols_previsores, "Teste 1 - Todas as Variaveis",
+        testar_possibilidades=TESTAR_POSSIBILIDADES
+    )
 
     # --- TESTE 2 ---
-    # Retira ruído de pré-processamento (variáveis fortemente colineares)
-    if cols_para_remover:
-        X_sem_ruido = X_completo.drop(columns=cols_para_remover)
-        executar_teste(X_sem_ruido, y, "Teste 2 - Sem Variaveis Muito Correlacionadas")
-    else:
-        print("\n\n[i] Pulando o 'Teste 2', pois não há dependência grave apontada entre as features.")
-
-    # --- TESTE 3 ---
-    # Tentar forçar um modelo mais simples (menos recursos gastos e maior explicabilidade)
-    qtd_top = min(5, len(top_features_t1))
-    X_top = X_completo[top_features_t1[:qtd_top]]
-    executar_teste(X_top, y, f"Teste 3 - Apenas as TOP {qtd_top} Variaveis")
+    if TESTAR_POSSIBILIDADES and top_features_t1:
+        qtd_top = min(5, len(top_features_t1))
+        indices_top = [list(cols_previsores).index(col) for col in top_features_t1[:qtd_top]]
+        
+        X_treino_top = previsores_treinamento[:, indices_top]
+        X_teste_top = previsores_teste[:, indices_top]
+        
+        executar_teste(
+            X_treino_top, y_treino, 
+            X_teste_top, y_teste, 
+            top_features_t1[:qtd_top], 
+            f"Teste 2 - Apenas as TOP {qtd_top} Variaveis",
+            testar_possibilidades=TESTAR_POSSIBILIDADES
+        )
 
     print(f"\n\n{'='*80}")
     print("Processamento total e geração de gráficos concluídos com sucesso!")
