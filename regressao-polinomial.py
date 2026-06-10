@@ -3,7 +3,7 @@
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn import metrics
 
-poly = PolynomialFeatures(degree = 3)
+poly = PolynomialFeatures(degree = 5)
 previsores_treinamento_poly = poly.fit_transform(previsores_treinamento)
 previsores_teste_poly = poly.transform(previsores_teste)
 

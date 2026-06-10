@@ -1,0 +1,25 @@
+﻿Atributo,Tipo,Valores Possíveis / Range
+year,Numérico Discreto,Min: 2015 | Max: 2024
+country,Categórico,Categorias: 40
+region,Categórico,"Categorias: 10 (South Asia, Southeast Asia, Sub-Saharan Africa, Middle East & North Africa, North America, Latin America & Caribbean, East Asia, Oceania, Europe, Europe/Asia)"
+income_group,Categórico,"Categorias: 4 (Lower-Middle Income, Low Income, High Income, Upper-Middle Income)"
+gdp_per_capita_usd,Numérico Contínuo,Min: 470 | Max: 107221
+poverty_rate_pct,Numérico Contínuo,Min: 0.5 | Max: 74.87
+gini_coefficient,Numérico Contínuo,Min: 20.3 | Max: 63.51
+hdi_score,Numérico Contínuo,Min: 0.352 | Max: 0.99
+unemployment_rate_pct,Numérico Contínuo,Min: -1.02 | Max: 21.31
+inflation_rate_pct,Numérico Contínuo,Min: -2.91 | Max: 38.77
+literacy_rate_pct,Numérico Contínuo,Min: 35.1 | Max: 99.9
+life_expectancy_years,Numérico Contínuo,Min: 52.0 | Max: 86.3
+child_mortality_per_1000,Numérico Contínuo,Min: 1.5 | Max: 119.7
+electricity_access_pct,Numérico Contínuo,Min: 20.0 | Max: 100.0
+clean_water_access_pct,Numérico Contínuo,Min: 30.0 | Max: 100.0
+internet_penetration_pct,Numérico Contínuo,Min: 5.0 | Max: 99.0
+female_labor_participation_pct,Numérico Contínuo,Min: 5.5 | Max: 83.2
+social_protection_coverage_pct,Numérico Contínuo,Min: 5.0 | Max: 95.0
+income_share_top10_pct,Numérico Contínuo,Min: 25.0 | Max: 55.0
+income_share_bottom40_pct,Numérico Contínuo,Min: 8.0 | Max: 22.0
+urban_population_pct,Numérico Contínuo,Min: 15.0 | Max: 95.0
+remittances_pct_of_gdp,Numérico Contínuo,Min: 0.0 | Max: 25.0
+foreign_aid_million_usd,Numérico Contínuo,Min: 0 | Max: 6213
+co2_per_capita_tonnes,Numérico Contínuo,Min: 0.1 | Max: 19.98

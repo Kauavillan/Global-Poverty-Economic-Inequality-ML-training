@@ -57,7 +57,7 @@ def executar_teste(X_train, y_train, X_test, y_test, nomes_colunas, nome_teste, 
     else:
         print(f"[{nome_teste}] 1. Treinando modelo com configuração predefinida...")
         # Configuração baseada nos exemplos de aula
-        melhor_modelo = DecisionTreeRegressor(max_depth=9, random_state=42)
+        melhor_modelo = DecisionTreeRegressor(max_depth=5, random_state=42)
 
     print(f"[{nome_teste}] 2. Rodando Validação Cruzada KFold...")
     scores = cross_validate(melhor_modelo, X_train, y_train, cv=cv_strategy, scoring=('r2', 'neg_mean_absolute_error', 'neg_mean_squared_error', 'neg_root_mean_squared_error'))

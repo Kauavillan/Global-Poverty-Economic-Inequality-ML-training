@@ -88,7 +88,7 @@ for indice_treinamento, indice_teste in kfold.split(previsores_arr):
     
     # 3. Construção e Treinamento do Modelo
     # Usando a configuração predefinida do projeto
-    regressor = SVR(kernel='rbf', C=1.0, epsilon=0.1, gamma='scale')
+    regressor = SVR(C= 1.0, epsilon= 0.5, gamma='scale', kernel='linear')
     
     # Treinamento (ravel() para formato 1D exigido pelo SVR)
     regressor.fit(X_treino_scaled, y_treino_scaled.ravel())
@@ -135,11 +135,29 @@ mapes = np.asarray(mapes)
 mape_final_medio = mapes.mean()
 mape_final_desvio_padrao = mapes.std()
 
-print("\n--- Resultados Finais (SVR) ---")
-print(f"R² Médio: {score_final_medio:.4f} (± {score_final_desvio_padrao:.4f})")
-print(f"MAE Médio: {mae_final_medio:.4f} (± {mae_final_desvio_padrao:.4f})")
-print(f"RMSE Médio: {rmse_final_medio:.4f} (± {rmse_final_desvio_padrao:.4f})")
-print(f"MAPE Médio: {mape_final_medio:.4f}% (± {mape_final_desvio_padrao:.4f})\n")
+print("\n--- Resultados Finais (Redes Neurais) ---")
+
+# Formatar resultados com vírgula como separador decimal
+score_str = f"{score_final_medio:.4f}".replace('.', ',')
+score_sd_str = f"{score_final_desvio_padrao:.4f}".replace('.', ',')
+print(f"Score (R²): {score_str} (± {score_sd_str})")
+
+mape_str = f"{mape_final_medio:.4f}".replace('.', ',')
+mape_sd_str = f"{mape_final_desvio_padrao:.4f}".replace('.', ',')
+print(f"MAPE Médio: {mape_str}% (± {mape_sd_str})")
+
+mae_str = f"{mae_final_medio:.4f}".replace('.', ',')
+mae_sd_str = f"{mae_final_desvio_padrao:.4f}".replace('.', ',')
+print(f"MAE Médio: {mae_str} (± {mae_sd_str})")
+
+rmse_str = f"{rmse_final_medio:.4f}".replace('.', ',')
+rmse_sd_str = f"{rmse_final_desvio_padrao:.4f}".replace('.', ',')
+print(f"RMSE Médio: {rmse_str} (± {rmse_sd_str})")
+
+mse_str = f"{mse_final_medio:.4f}".replace('.', ',')
+mse_sd_str = f"{mse_final_desvio_padrao:.4f}".replace('.', ',')
+print(f"MSE Médio: {mse_str} (± {mse_sd_str})")
+
 
 # ################## Gráficos de Avaliação #######################################
 

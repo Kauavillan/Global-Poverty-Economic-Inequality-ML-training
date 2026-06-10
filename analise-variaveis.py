@@ -56,7 +56,9 @@ plt.figure(figsize=(20, 16)) # Tamanho maior por conta das variáveis dummy cria
 matriz_corr = df_completo.corr()
 
 # Mapa de Calor
-sns.heatmap(matriz_corr, annot=False, cmap='coolwarm', vmin=-1, vmax=1, linewidths=0.1)
+ax = sns.heatmap(matriz_corr, annot=False, cmap='coolwarm', vmin=-1, vmax=1, linewidths=0.1)
+ax.tick_params(axis='x', labelsize=24)
+ax.tick_params(axis='y', labelsize=24)
 plt.title("Heatmap de Correlação - Variáveis Numéricas", fontsize=16)
 plt.tight_layout()
 

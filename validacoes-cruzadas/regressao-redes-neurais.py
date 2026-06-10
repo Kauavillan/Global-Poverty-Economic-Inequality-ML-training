@@ -87,11 +87,10 @@ for indice_treinamento, indice_teste in kfold.split(previsores_arr):
     y_treino_scaled = scaler_y.fit_transform(y_treino)
     
     # 3. Construção e Treinamento do Modelo
-    # Usando a configuração predefinida do projeto
     regressor = MLPRegressor(
-        hidden_layer_sizes=(100,),
-        activation='relu',
-        max_iter=500,
+        hidden_layer_sizes=(2, 5),
+        activation='tanh',
+        max_iter= 1000,
         random_state=42
     )
     
@@ -141,7 +140,7 @@ mapes = np.asarray(mapes)
 mape_final_medio = mapes.mean()
 mape_final_desvio_padrao = mapes.std()
 
-print("\n--- Resultados Finais (Regressão Linear) ---")
+print("\n--- Resultados Finais (Redes Neurais) ---")
 
 # Formatar resultados com vírgula como separador decimal
 score_str = f"{score_final_medio:.4f}".replace('.', ',')

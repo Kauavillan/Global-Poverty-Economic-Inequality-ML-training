@@ -17,19 +17,19 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Toggle para testar múltiplas possibilidades (GridSearch, Seleção de Variáveis) ou apenas rodar a melhor configuração do modelo.
-TESTAR_POSSIBILIDADES = False
+TESTAR_POSSIBILIDADES = True
 
 # =============================================================================
 # 1. Importação do Pré-Processamento do Professor
 # =============================================================================
-# print("Executando pre-processamento.py...")
-# os.makedirs('resultados', exist_ok=True)
+#print("Executando pre-processamento.py...")
+#os.makedirs('resultados', exist_ok=True)
 
-# with open('pre-processamento.py', 'r', encoding='utf-8') as f:
-#     exec(f.read())
+#with open('pre-processamento.py', 'r', encoding='utf-8') as f:
+#    exec(f.read())
 
-# y_treino = objetivo_treinamento.ravel()
-# y_teste = objetivo_teste.ravel()
+y_treino = objetivo_treinamento.ravel()
+y_teste = objetivo_teste.ravel()
 
 # =============================================================================
 # 2. Funções de Teste de Regressão
@@ -43,9 +43,9 @@ def executar_teste(X_train, y_train, X_test, y_test, nomes_colunas, nome_teste, 
 
     if testar_possibilidades:
         param_grid = {
-            'hidden_layer_sizes': [(50,), (100,), (50, 50)],
+            'hidden_layer_sizes': [(2,1),(2,2),(2,3),(2,4),(2,5),(2,6),(2,7),(2,8),(2,9),(2,10)],
             'activation': ['relu', 'tanh'],
-            'max_iter': [500],
+            'max_iter': [1000],
             'random_state': [42]
         }
 

@@ -17,7 +17,7 @@ import os
 warnings.filterwarnings('ignore')
 
 # Toggle para testar múltiplas possibilidades (GridSearch, Seleção de Variáveis) ou apenas rodar a melhor configuração do modelo.
-TESTAR_POSSIBILIDADES = False
+TESTAR_POSSIBILIDADES = True
 
 # =============================================================================
 # 1. Importação do Pré-Processamento do Professor
@@ -30,8 +30,8 @@ TESTAR_POSSIBILIDADES = False
 
 # # O StandardScaler do professor retorna matrizes 2D para o objetivo.
 # # O SVR exige um vetor 1D, então aplicamos .ravel()
-# y_treino = objetivo_treinamento.ravel()
-# y_teste = objetivo_teste.ravel()
+y_treino = objetivo_treinamento.ravel()
+y_teste = objetivo_teste.ravel()
 
 # =============================================================================
 # 2. Funções de Teste de Regressão
@@ -45,10 +45,10 @@ def executar_teste(X_train, y_train, X_test, y_test, nomes_colunas, nome_teste, 
 
     if testar_possibilidades:
         param_grid = {
-            'kernel': ['rbf', 'linear'],
-            'C': [0.1, 1.0, 10.0],
+            'kernel': ['rbf'],
+            'C': [0.1, 0.4, 0.8,1.5, 2.0,2.5, 3.0, 10.0],
             'gamma': ['scale'],
-            'epsilon': [0.01, 0.1, 1.0]
+            'epsilon': [0.01, 0.1, 0.5, 0.8, 1.0]
         }
         print(f"[{nome_teste}] 1. Treinando e otimizando parâmetros em 75% da base...")
         grid_search = GridSearchCV(estimator=SVR(), param_grid=param_grid, scoring='neg_mean_squared_error', cv=cv_strategy, n_jobs=-1)
