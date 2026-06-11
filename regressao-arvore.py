@@ -46,7 +46,7 @@ def executar_teste(X_train, y_train, X_test, y_test, nomes_colunas, nome_teste, 
             'max_depth': [None, 5, 10, 15, 20],
             'min_samples_split': [2, 5, 10],
             'min_samples_leaf': [1, 2, 4],
-            'random_state': [42]
+            'random_state': [42],
         }
 
         print(f"[{nome_teste}] 1. Treinando e otimizando parâmetros (GridSearch)...")

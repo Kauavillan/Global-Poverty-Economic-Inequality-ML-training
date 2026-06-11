@@ -17,7 +17,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Toggle para testar múltiplas possibilidades (GridSearch, Seleção de Variáveis) ou apenas rodar a melhor configuração do modelo.
-TESTAR_POSSIBILIDADES = True
+TESTAR_POSSIBILIDADES = False
 
 # =============================================================================
 # 1. Importação do Pré-Processamento do Professor
@@ -56,7 +56,7 @@ def executar_teste(X_train, y_train, X_test, y_test, nomes_colunas, nome_teste, 
         print(f"[{nome_teste}] Melhor configuração: {grid_search.best_params_}")
     else:
         print(f"[{nome_teste}] 1. Treinando modelo com a melhor configuração predefinida...")
-        melhor_modelo = MLPRegressor(hidden_layer_sizes=(100,), activation='relu', max_iter=500, random_state=42)
+        melhor_modelo = MLPRegressor(hidden_layer_sizes=(5,), activation='tanh', max_iter=500, random_state=42)
 
     print(f"[{nome_teste}] 2. Rodando Validação Cruzada KFold...")
     scores = cross_validate(melhor_modelo, X_train, y_train, cv=cv_strategy, scoring=('r2', 'neg_mean_absolute_error', 'neg_mean_squared_error', 'neg_root_mean_squared_error'))

@@ -17,7 +17,7 @@ import os
 warnings.filterwarnings('ignore')
 
 # Toggle para testar múltiplas possibilidades (GridSearch, Seleção de Variáveis) ou apenas rodar a melhor configuração do modelo.
-TESTAR_POSSIBILIDADES = True
+TESTAR_POSSIBILIDADES = False
 
 # =============================================================================
 # 1. Importação do Pré-Processamento do Professor
@@ -45,7 +45,7 @@ def executar_teste(X_train, y_train, X_test, y_test, nomes_colunas, nome_teste, 
 
     if testar_possibilidades:
         param_grid = {
-            'kernel': ['rbf'],
+            'kernel': ['rbf', 'linear', 'sigmoid'],
             'C': [0.1, 0.4, 0.8,1.5, 2.0,2.5, 3.0, 10.0],
             'gamma': ['scale'],
             'epsilon': [0.01, 0.1, 0.5, 0.8, 1.0]
@@ -57,7 +57,7 @@ def executar_teste(X_train, y_train, X_test, y_test, nomes_colunas, nome_teste, 
         print(f"[{nome_teste}] Melhor configuração: {grid_search.best_params_}")
     else:
         print(f"[{nome_teste}] 1. Treinando modelo com a melhor configuração predefinida...")
-        melhor_modelo = SVR(kernel='rbf', C=1.0, epsilon=0.1, gamma='scale')
+        melhor_modelo = SVR(kernel='rbf', C=10.0, epsilon=0.5, gamma='scale')
 
     print(f"[{nome_teste}] 2. Rodando Validação Cruzada KFold...")
     scores = cross_validate(melhor_modelo, X_train, y_train, cv=cv_strategy, scoring=('r2', 'neg_mean_absolute_error', 'neg_mean_squared_error', 'neg_root_mean_squared_error'))

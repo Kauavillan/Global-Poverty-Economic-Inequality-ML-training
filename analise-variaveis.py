@@ -57,8 +57,8 @@ matriz_corr = df_completo.corr()
 
 # Mapa de Calor
 ax = sns.heatmap(matriz_corr, annot=False, cmap='coolwarm', vmin=-1, vmax=1, linewidths=0.1)
-ax.tick_params(axis='x', labelsize=24)
-ax.tick_params(axis='y', labelsize=24)
+ax.tick_params(axis='x', labelsize=12)
+ax.tick_params(axis='y', labelsize=12)
 plt.title("Heatmap de Correlação - Variáveis Numéricas", fontsize=16)
 plt.tight_layout()
 
